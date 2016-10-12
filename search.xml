@@ -5,7 +5,7 @@
     
     <entry>
       <title><![CDATA[使用Hexo建立博客]]></title>
-      <url>http://yoursite.com/2016/10/09/using_Hexo_buildBlog/</url>
+      <url>http://114.215.131.217/2016/10/09/using_Hexo_buildBlog/</url>
       <content type="html"><![CDATA[<p>如果使用<code>apt-get install</code>的方式来安装nodejs、npm会有一些坑，此处使用官方编译好的压缩包来安装Hexo的前期依赖，并在一台<code>ubuntu 14.x x64</code>的Ali ECS上进行部署，通过其上的Apache/Nginx直接解析public文件夹下生成的静态页面，通过git向Github Page同步<code>静态文件分支</code>，向自己的Github同步<code>代码分支</code>达到版本控制的目的</p>
 <a id="more"></a>
 <h1 id="0x00-安装nodejs"><a href="#0x00-安装nodejs" class="headerlink" title="0x00 安装nodejs"></a>0x00 安装nodejs</h1><p>从<a href="https://nodejs.org/en/" target="_blank" rel="external">官网</a>下载<code>Download for Linux (x64)</code><br>解压缩后，重命名文件夹，放置在合适位置，比如/root/nodejs<br>通常用<code>tar zvxf ...</code>解压<code>.tar.gz</code>结尾的压缩包，<code>.tar.xz</code>需要两条命令<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">xz -d node-v4.6.0-linux-x64.tar.xz</div><div class="line">tar xvf node-v4.6.0-linux-x64.tar</div><div class="line">mv node-v4.6.0-linux-x64.tar /root/nodejs</div></pre></td></tr></table></figure></p>
@@ -33,7 +33,7 @@
 <h2 id="开始安装"><a href="#开始安装" class="headerlink" title="开始安装"></a>开始安装</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ npm install -g hexo-cli [--registry https://registry.npm.taobao.org]</div></pre></td></tr></table></figure>
 <p>安装完成后会在nodejs文件夹下出现hexo的链接，再次将该文件链接到/usr/local/bin：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo ln -s /home/NAME/nodejs/bin/hexo /usr/local/bin/hexo</div></pre></td></tr></table></figure></p>
 <h1 id="0x03-Hexo配置"><a href="#0x03-Hexo配置" class="headerlink" title="0x03 Hexo配置"></a>0x03 Hexo配置</h1><p>克隆下来Github Page对应的仓库，放在/var/www/：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cd /var/www</div><div class="line">git clone git@github.com:DshtAnger/DshtAnger.github.io.git</div></pre></td></tr></table></figure></p>
-<p>很多基本用法可以参考：<a href="https://hexo.io/zh-cn/docs/index.html" target="_blank" rel="external">Hexo官方文档</a>   </p>
+<p>很多基本用法可以参考：<a href="https://hexo.io/zh-cn/docs/index.html" target="_blank" rel="external">Hexo官方文档</a>  </p>
 <h2 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cd DshtAnger.github.io</div><div class="line">hexo init</div></pre></td></tr></table></figure>
 <p>此后这个目录就是进行<code>hexo clean</code>、<code>hexo generate</code>、<code>hexo server</code>、<code>hexo deploy</code>的根目录  </p>
 <h2 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">npm install</div></pre></td></tr></table></figure>
@@ -41,7 +41,7 @@
 <h2 id="本地启动"><a href="#本地启动" class="headerlink" title="本地启动"></a>本地启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">hexo server</div></pre></td></tr></table></figure>
 <p>浏览器输入<code>http://IP:4000</code>就能看到页面了  </p>
 <h1 id="0x04-部署到Github"><a href="#0x04-部署到Github" class="headerlink" title="0x04 部署到Github"></a>0x04 部署到Github</h1><p><a href="https://hexo.io/zh-cn/docs/deployment.html" target="_blank" rel="external">参考官网描述</a></p>
-<p><code>master</code>分支作为<code>静态文件分支</code>;<code>code</code>分支作为<code>代码分支</code>管理非public文件夹的代码文件  </p>
+<p>所有操作都在同一个仓库内，<code>master</code>分支作为<code>静态文件分支</code>;<code>code</code>分支作为<code>代码分支</code>管理非public文件夹的代码文件  </p>
 <h2 id="静态文件分支"><a href="#静态文件分支" class="headerlink" title="静态文件分支"></a>静态文件分支</h2><p>两种方法:</p>
 <ol>
 <li>使用原生git命令,只将public文件夹同步到Github</li>
@@ -59,9 +59,8 @@
 <p>查看当前分支:<code>git branch</code>  </p>
 <h3 id="提交同步"><a href="#提交同步" class="headerlink" title="提交同步"></a>提交同步</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">git remote add origin git@github.com:DshtAnger/DshtAnger.github.io</div><div class="line">git push -u origin code</div></pre></td></tr></table></figure>
 <p>这样就在仓库里的code分支保存好代码文件了，以后通过此分支管理代码文件  </p>
-<p>要用<code>hexo deploy</code>部署时，先切换回master分支  </p>
-<h2 id="分支合并问题"><a href="#分支合并问题" class="headerlink" title="分支合并问题"></a>分支合并问题</h2><p>通常都时在master分支上进行各种操作，比如生成页面、修改文章等  </p>
-<p>修改的文章要在code分支上进行提交，所以就先切换到code分支，然后将master分支上的工作merge过来<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">git checkout code</div><div class="line">git merge master</div><div class="line"></div><div class="line">hexo clean</div><div class="line"></div><div class="line">git add *</div><div class="line">git commit -m &quot;say something&quot;</div><div class="line"></div><div class="line">git push origin code</div></pre></td></tr></table></figure></p>
+<p>要用<code>hexo deploy</code>部署时，<strong>无需切换回master分支</strong>，因为根目录下的配置文件中已经定义了这个操作时在master下进行</p>
+<h2 id="后续管理都在code分支进行"><a href="#后续管理都在code分支进行" class="headerlink" title="后续管理都在code分支进行"></a>后续管理都在code分支进行</h2><p>无论是生成网页，还是修改文章、代码文件，都在<code>code</code>分支进行，但push前记得<code>hexo clean</code>一下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">git checkout code</div><div class="line">hexo clean</div><div class="line">git add *</div><div class="line">git commit -m &quot;say something&quot;</div><div class="line">git push origin code</div></pre></td></tr></table></figure></p>
 <h1 id="0x05-使用Apache解析静态文件"><a href="#0x05-使用Apache解析静态文件" class="headerlink" title="0x05 使用Apache解析静态文件"></a>0x05 使用Apache解析静态文件</h1><p><code>hexo generate</code>后<code>public</code>文件夹下生成了网站的完整静态文件，只要让Apache或者Nginx以public文件夹作文根目录进行解析，就能直接通过ECS的公网ip访问到我们的网站，内容和同步到Github Page的一致，但访问速度和承载力自然胜过前者不少  </p>
 <p>根据前面，在<code>/var/www</code>下有一个<code>DshtAnger.github.io</code>文件夹，放置了所有的Hexo代码文件和生成的静态文件夹<code>public</code>，现在修改Apache的默认根目录到public即可  </p>
 <h2 id="修改默认根目录"><a href="#修改默认根目录" class="headerlink" title="修改默认根目录"></a>修改默认根目录</h2><p>参考：<a href="http://www.linuxdiyf.com/linux/13068.html" target="_blank" rel="external">Ubuntu 14.04下Apache修改网站根目录及默认网页</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">在 /etc/apache2/sites-available 中修改 000-default.conf</div><div class="line">中的DocumentRoot /var/www/ 修改为想要的目录</div><div class="line">比如：DocumentRoot /var/www/html/DshtAnger.github.io/public</div></pre></td></tr></table></figure></p>
@@ -107,7 +106,7 @@
     
     <entry>
       <title><![CDATA[Topsec ECLO 漏洞利用分析]]></title>
-      <url>http://yoursite.com/2016/08/17/Topsec_ELCO_Analy/</url>
+      <url>http://114.215.131.217/2016/08/17/Topsec_ELCO_Analy/</url>
       <content type="html"><![CDATA[<p>近期NSA方程式组织被泄漏出的针对天融信防火墙的漏洞利用中，有一处名为<code>ELCO-Eligible Contestant</code>的漏洞  </p>
 <p>该漏洞是TOS系统中入口文件<code>maincgi.cgi</code>文件里处理post请求产生的一个<code>命令执行漏洞</code></p>
 <a id="more"></a>
@@ -143,7 +142,7 @@
     
     <entry>
       <title><![CDATA[Zabbix insertDB()注入漏洞分析]]></title>
-      <url>http://yoursite.com/2016/08/15/Zabbix_insertDB_Injection/</url>
+      <url>http://114.215.131.217/2016/08/15/Zabbix_insertDB_Injection/</url>
       <content type="html"><![CDATA[<p>Zabbix是一个基于WEB界面的提供分布式系统监视以及网络监视功能的企业级的开源解决方案。能监视各种网络参数，保证服务器系统的安&gt;全运营；并提供灵活的通知机制以让系统管理员快速定位、解决存在的各种问题。</p>
 <p>由于<code>insertDB()</code>函数对可控参数过滤不当，导致SQL注入</p>
 <p>攻击者可以在通过SQL注入获取数据库的访问权限。攻击者以管理员身份登陆后台后，可以实现在放置数据库的服务器执行任意系统命令</p>
@@ -227,7 +226,7 @@
     
     <entry>
       <title><![CDATA[使用uWSGI和Nginx部署Django]]></title>
-      <url>http://yoursite.com/2016/08/05/deployDjango_Nginx_uWSGI/</url>
+      <url>http://114.215.131.217/2016/08/05/deployDjango_Nginx_uWSGI/</url>
       <content type="html"><![CDATA[<p>如何使用uWSGI和Nginx将Django应用部署到生产环境中，本文对此做了较详细的记录，一切过程经过亲自操作.</p>
 <a id="more"></a>
 <h2 id="使用uWSGI和Nginx部署Django"><a href="#使用uWSGI和Nginx部署Django" class="headerlink" title="使用uWSGI和Nginx部署Django"></a>使用uWSGI和Nginx部署Django</h2><hr>
