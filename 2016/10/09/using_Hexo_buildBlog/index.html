@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="DshtAnger" />
+
+
+
+<meta name="description" content="如果使用apt-get install的方式来安装nodejs、npm会有一些坑，此处使用官方编译好的压缩包来安装Hexo的前期依赖，并在一台ubuntu 14.x x64的Ali ECS上进行部署，通过其上的Apache/Nginx直接解析public文件夹下生成的静态页面，通过git向Github Page同步静态文件分支，向自己的Github同步代码分支达到版本控制的目的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Hexo建立博客">
+<meta property="og:url" content="http://yoursite.com/2016/10/09/using_Hexo_buildBlog/index.html">
+<meta property="og:site_name" content="DshtAnger">
+<meta property="og:description" content="如果使用apt-get install的方式来安装nodejs、npm会有一些坑，此处使用官方编译好的压缩包来安装Hexo的前期依赖，并在一台ubuntu 14.x x64的Ali ECS上进行部署，通过其上的Apache/Nginx直接解析public文件夹下生成的静态页面，通过git向Github Page同步静态文件分支，向自己的Github同步代码分支达到版本控制的目的">
+<meta property="og:updated_time" content="2016-10-12T08:36:28.940Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用Hexo建立博客">
+<meta name="twitter:description" content="如果使用apt-get install的方式来安装nodejs、npm会有一些坑，此处使用官方编译好的压缩包来安装Hexo的前期依赖，并在一台ubuntu 14.x x64的Ali ECS上进行部署，通过其上的Apache/Nginx直接解析public文件夹下生成的静态页面，通过git向Github Page同步静态文件分支，向自己的Github同步代码分支达到版本控制的目的">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="DshtAnger" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>使用Hexo建立博客 | DshtAnger</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: false
+    }
+</script>
+
+
+    <script>
+        yiliaConfig.jquery_ui = [true, "//cdn.bootcss.com/jqueryui/1.10.4/jquery-ui.min.js", "//cdn.bootcss.com/jqueryui/1.10.4/css/jquery-ui.min.css"];
+    </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/hacker.jpg" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">DshtAnger</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">To Be A Hacker</p>
+        
+
+        
+
+
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa GitHub" href="https://github.com/DshtAnger" title="GitHub"></a>
+                            
+                                <a class="fa Email" href="mailto:568274449@qq.com" title="Email"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">DshtAnger</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/hacker.jpg" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">DshtAnger</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">To Be A Hacker</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/DshtAnger" title="GitHub"></a>
+                            
+                                <a class="fa Email" target="_blank" href="mailto:568274449@qq.com" title="Email"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-using_Hexo_buildBlog" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/10/09/using_Hexo_buildBlog/" class="article-date">
+      <time datetime="2016-10-09T04:12:12.000Z" itemprop="datePublished">2016-10-09</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      使用Hexo建立博客
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Apache/">Apache</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Git/">Git</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hexo/">Hexo</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>如果使用<code>apt-get install</code>的方式来安装nodejs、npm会有一些坑，此处使用官方编译好的压缩包来安装Hexo的前期依赖，并在一台<code>ubuntu 14.x x64</code>的Ali ECS上进行部署，通过其上的Apache/Nginx直接解析public文件夹下生成的静态页面，通过git向Github Page同步<code>静态文件分支</code>，向自己的Github同步<code>代码分支</code>达到版本控制的目的</p>
+<a id="more"></a>
+<h1 id="0x00-安装nodejs"><a href="#0x00-安装nodejs" class="headerlink" title="0x00 安装nodejs"></a>0x00 安装nodejs</h1><p>从<a href="https://nodejs.org/en/" target="_blank" rel="external">官网</a>下载<code>Download for Linux (x64)</code><br>解压缩后，重命名文件夹，放置在合适位置，比如/root/nodejs<br>通常用<code>tar zvxf ...</code>解压<code>.tar.gz</code>结尾的压缩包，<code>.tar.xz</code>需要两条命令<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">xz -d node-v4.6.0-linux-x64.tar.xz</div><div class="line">tar xvf node-v4.6.0-linux-x64.tar</div><div class="line">mv node-v4.6.0-linux-x64.tar /root/nodejs</div></pre></td></tr></table></figure></p>
+<p>在<code>nodejs/bin</code>文件夹下发现<code>node</code>与<code>npm</code>两个文件  </p>
+<p>设置软链接到<code>/usr/local/bin</code>使以上两个命令可以全局使用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">sudo ln -s /home/DshtAnger/nodejs/bin/node /usr/local/bin/node</div><div class="line">sudo ln -s /home/DshtAnger/nodejs/bin/npm /usr/local/bin/npm</div></pre></td></tr></table></figure></p>
+<h1 id="0x01-安装配置Git"><a href="#0x01-安装配置Git" class="headerlink" title="0x01 安装配置Git"></a>0x01 安装配置Git</h1><p>此过程非常easy，主要查看参考文章中的如下两篇<br><a href="http://www.jianshu.com/p/99665608d295" target="_blank" rel="external">Hexo搭建个人博客2</a>  或 <a href="http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/001374385852170d9c7adf13c30429b9660d0eb689dd43a000" target="_blank" rel="external">生成Github的SSH Key</a>  </p>
+<h2 id="安装git："><a href="#安装git：" class="headerlink" title="安装git："></a>安装git：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install git-core</div></pre></td></tr></table></figure>
+<h2 id="生成SSH-Key"><a href="#生成SSH-Key" class="headerlink" title="生成SSH Key"></a>生成SSH Key</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ ssh-keygen -t rsa -C &quot;youremail@example.com&quot;</div></pre></td></tr></table></figure>
+<p>把邮件地址换成自己的，然后一路回车，使用默认值即可，由于这个Key也不是用于军事目的，所以也无需设置密码  </p>
+<p>如果一切顺利的话，可以在用户主目录里找到<code>.ssh</code>目录，里面有<code>id_rsa</code>和<code>id_rsa.pub</code>两个文件，这两个就是SSH Key的秘钥对  </p>
+<p><code>id_rsa</code>是私钥，不能泄露出去。<code>id_rsa.pub</code>是公钥，是要往<code>Github Settings SSH Keys</code>页面填写的  </p>
+<p>这样做的好处在于，有了SSH Key以后通过git push的时候无需像使用https时每次都要输入用户名和密码  </p>
+<h2 id="配置Github-Page"><a href="#配置Github-Page" class="headerlink" title="配置Github Page"></a>配置Github Page</h2><p>在不购买服务器的情况下，可以直接将网站挂在GitHub Pages，这里仅作为一个ECS的备份使用：</p>
+<ol>
+<li>你需要拥有一个<a href="https://github.com/" target="_blank" rel="external">GitHub账号</a></li>
+<li>进入<a href="https://pages.github.com/" target="_blank" rel="external">GitHub Pages</a>，跟着一步步做，完成后就能在浏览器打开<a href="http://DshtAnger.github.io" target="_blank" rel="external">http://DshtAnger.github.io</a>  </li>
+</ol>
+<h1 id="0x02-安装Hexo"><a href="#0x02-安装Hexo" class="headerlink" title="0x02 安装Hexo"></a>0x02 安装Hexo</h1><h2 id="npm换源："><a href="#npm换源：" class="headerlink" title="npm换源："></a>npm换源：</h2><p>使用<code>npm</code>进行安装，此后一些插件也需要该工具，所以先将它配置好  </p>
+<p><code>npm</code> 全称 <code>Node Package Manager</code>，是node.js的模块依赖管理工具  </p>
+<p>首先，将<code>npm</code>的更新源换为淘宝的更新源，否则无法安装成功，你懂的   </p>
+<ul>
+<li>临时使用(增加参数)：<code>npm install -g hexo-cli --registry https://registry.npm.taobao.org</code></li>
+<li>持久使用(推荐)：<code>npm config set registry https://registry.npm.taobao.org</code><br>配置后可通过下面方式来验证是否成功<br><code>npm config get registry</code> 或 <code>npm info express</code></li>
+</ul>
+<h2 id="开始安装："><a href="#开始安装：" class="headerlink" title="开始安装："></a>开始安装：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ npm install -g hexo-cli [--registry https://registry.npm.taobao.org]</div></pre></td></tr></table></figure>
+<p>安装完成后会在nodejs文件夹下出现hexo的链接，再次将该文件链接到/usr/local/bin：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo ln -s /home/NAME/nodejs/bin/hexo /usr/local/bin/hexo</div></pre></td></tr></table></figure></p>
+<h1 id="0x03-Hexo配置"><a href="#0x03-Hexo配置" class="headerlink" title="0x03 Hexo配置"></a>0x03 Hexo配置</h1><p>克隆下来Github Page对应的仓库，放在/var/www/：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cd /var/www</div><div class="line">git clone git@github.com:DshtAnger/DshtAnger.github.io.git</div></pre></td></tr></table></figure></p>
+<p>很多基本用法可以参考：<a href="https://hexo.io/zh-cn/docs/index.html" target="_blank" rel="external">Hexo官方文档</a>   </p>
+<h2 id="初始化："><a href="#初始化：" class="headerlink" title="初始化："></a>初始化：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cd DshtAnger.github.io</div><div class="line">hexo init</div></pre></td></tr></table></figure>
+<p>接下来不能直接<code>hexo generate</code>，否则报一个<code>ERROR Try running: &#39;npm install hexo --save&#39;</code>的错误  </p>
+<h2 id="安装依赖："><a href="#安装依赖：" class="headerlink" title="安装依赖："></a>安装依赖：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">npm install</div></pre></td></tr></table></figure>
+<h2 id="生成静态文件："><a href="#生成静态文件：" class="headerlink" title="生成静态文件："></a>生成静态文件：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">hexo generate</div></pre></td></tr></table></figure>
+<h2 id="本地启动："><a href="#本地启动：" class="headerlink" title="本地启动："></a>本地启动：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">hexo server</div></pre></td></tr></table></figure>
+<p>浏览器输入<code>http://IP:4000</code>就能看到页面了  </p>
+<h1 id="0x04-deploy到Github"><a href="#0x04-deploy到Github" class="headerlink" title="0x04 deploy到Github"></a>0x04 deploy到Github</h1><p><a href="https://hexo.io/zh-cn/docs/deployment.html" target="_blank" rel="external">参考官网描述</a></p>
+<h2 id="安装git插件："><a href="#安装git插件：" class="headerlink" title="安装git插件："></a>安装git插件：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ npm install hexo-deployer-git --save</div></pre></td></tr></table></figure>
+<h2 id="修改-config-yml中参数："><a href="#修改-config-yml中参数：" class="headerlink" title="修改_config.yml中参数："></a>修改<code>_config.yml</code>中参数：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"># Deployment</div><div class="line">## Docs: https://hexo.io/docs/deployment.html</div><div class="line">deploy:</div><div class="line">  type: git</div><div class="line">  repo: git@github.com:DshtAnger/DshtAnger.github.io.git</div><div class="line">  branch: master</div></pre></td></tr></table></figure>
+<h2 id="一键部署："><a href="#一键部署：" class="headerlink" title="一键部署："></a>一键部署：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo deploy</div></pre></td></tr></table></figure>
+<p>这样就将整个public文件夹下生成的静态文件push到<code>DshtAnger.github.io.git</code>仓库中.访问<code>https://dshtanger.github.io/</code>就能看到网站内容了  </p>
+<p>但是代码部分没有能够同步进去，即无法完成版本控制  </p>
+<p>解决办法：可以另建一个分支，将所有非pubic文件夹的文件，git push到github</p>
+<h1 id="0x05-使用Apache解析静态文件"><a href="#0x05-使用Apache解析静态文件" class="headerlink" title="0x05 使用Apache解析静态文件"></a>0x05 使用Apache解析静态文件</h1><p><code>hexo generate</code>后<code>public</code>文件夹下生成了网站的完整静态文件，只要让Apache或者Nginx以public文件夹作文根目录进行解析，就能直接通过ECS的公网ip访问到我们的网站，内容和同步到Github Page的一致，但访问速度和承载力自然胜过前者不少  </p>
+<p>根据前面，在<code>/var/www</code>下有一个<code>DshtAnger.github.io</code>文件夹，放置了所有的Hexo代码文件和生成的静态文件夹<code>public</code>，现在修改Apache的默认根目录到public即可  </p>
+<h2 id="修改默认根目录"><a href="#修改默认根目录" class="headerlink" title="修改默认根目录"></a>修改默认根目录</h2><p>参考：<a href="http://www.linuxdiyf.com/linux/13068.html" target="_blank" rel="external">Ubuntu 14.04下Apache修改网站根目录及默认网页</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">在 /etc/apache2/sites-available 中修改 000-default.conf</div><div class="line">中的DocumentRoot /var/www/ 修改为想要的目录</div><div class="line">比如：DocumentRoot /var/www/html/DshtAnger.github.io/public</div></pre></td></tr></table></figure></p>
+<p>重启Apache服务后，接下来就能直接通过ECS的IP或者域名进行访问了，在未修改其他配置时默认挂载在80端口  </p>
+<h2 id="禁止显示目录结构"><a href="#禁止显示目录结构" class="headerlink" title="禁止显示目录结构"></a>禁止显示目录结构</h2><p>参考：<a href="http://www.jb51.net/article/46767.htm" target="_blank" rel="external">禁止apache显示目录索引的常见方法</a>  </p>
+<p><code>vim /etc/apache2/apache2.conf</code>，找到下面部分<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;Directory /var/www/&gt;</div><div class="line">        Options Indexes FollowSymLinks</div><div class="line">        AllowOverride None</div><div class="line">        Require all granted</div><div class="line">&lt;/Directory&gt;</div></pre></td></tr></table></figure></p>
+<p>删除<code>Indexes</code>，然后重启服务</p>
+<h2 id="启用多端口"><a href="#启用多端口" class="headerlink" title="启用多端口"></a>启用多端口</h2><p>比如默认的80端口被其他的应用使用，可以将网站挂到其他端口如8080<br>参考：<a href="http://www.mengxinjie.cn/node/65" target="_blank" rel="external">多个端口配置虚拟主机</a></p>
+<h3 id="修改ports-conf"><a href="#修改ports-conf" class="headerlink" title="修改ports.conf"></a>修改ports.conf</h3><p><code>vim /etc/apache2/ports.conf</code><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">NameVirtualHost *:80</div><div class="line">Listen 80</div><div class="line"></div><div class="line">NameVirtualHost *:8080</div><div class="line">Listen 8080</div></pre></td></tr></table></figure></p>
+<h3 id="修改网站启动配置文件"><a href="#修改网站启动配置文件" class="headerlink" title="修改网站启动配置文件"></a>修改网站启动配置文件</h3><p><code>/etc/apache2/sites-available</code><br><code>cp 000-default.conf blog.conf</code><br><code>vim blog.conf</code><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;VirtualHost *:8080&gt;</div><div class="line">        ServerAdmin webmaster@localhost</div><div class="line">        DocumentRoot /var/www/DshtAnger.github.io/public/</div><div class="line"></div><div class="line">        ErrorLog $&#123;APACHE_LOG_DIR&#125;/error.log</div><div class="line">        CustomLog $&#123;APACHE_LOG_DIR&#125;/access.log combined</div><div class="line">&lt;/VirtualHost&gt;</div></pre></td></tr></table></figure></p>
+<h3 id="启动配置"><a href="#启动配置" class="headerlink" title="启动配置"></a>启动配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">a2ensite blog.conf</div><div class="line">service apache2 reload</div></pre></td></tr></table></figure>
+<p>然后就能在<a href="http://IP:8080访问到以public文件夹作为根目录的网站，和80端口互不干扰" target="_blank" rel="external">http://IP:8080访问到以public文件夹作为根目录的网站，和80端口互不干扰</a></p>
+<h1 id="0x06-更换主题"><a href="#0x06-更换主题" class="headerlink" title="0x06 更换主题"></a>0x06 更换主题</h1><p>知乎上有个帖子推荐了很多不错的主题与链接，<a href="https://www.zhihu.com/question/24422335" target="_blank" rel="external">有哪些好看的 Hexo 主题？</a>  </p>
+<ol>
+<li>通过<code>git clone</code>对应的项目到<code>DshtAnger.github.io/themes</code></li>
+<li><p>修改网站配置文件<code>_config.yml</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"># Extensions</div><div class="line">## Plugins: https://hexo.io/plugins/</div><div class="line">## Themes: https://hexo.io/themes/</div><div class="line">theme: THEMES_NAME</div></pre></td></tr></table></figure>
+</li>
+<li><p>修改主题配置文件<code>THEMES_NAME/_config.yml</code></p>
+</li>
+</ol>
+<h2 id="本博客主题yelee"><a href="#本博客主题yelee" class="headerlink" title="本博客主题yelee"></a>本博客主题<code>yelee</code></h2><p><a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" rel="external">Yelee</a>基于主题<a href="https://github.com/litten/hexo-theme-yilia" target="_blank" rel="external">Hexo-Theme-Yilia</a>修改而来，在此感谢作者MOxFIVE的出色工作，该主题的完整<a href="http://moxfive.coding.me/yelee/" target="_blank" rel="external">设置文档</a>在此</p>
+<h3 id="滚动条问题"><a href="#滚动条问题" class="headerlink" title="滚动条问题"></a>滚动条问题</h3><p>基本设置好后会发现代码区域会有很难看的边框滚动条显示出来，解决办法：<br><code>vim yelee/source/css/_partial/highlight.styl</code><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">......</div><div class="line">(24行处插入注释那句)</div><div class="line">.article-entry</div><div class="line">  pre, code</div><div class="line">    font-family: font-mono, monospace, font-chs</div><div class="line">    font-size: 1em</div><div class="line">  pre</div><div class="line">    @extend $code-block</div><div class="line">    overflow: hidden //去除滑动条</div><div class="line">    code</div><div class="line">   </div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>此外修改34行<code>max-height</code>参数可以改变代码区域的可显示高度  </p>
+<h3 id="404页面问题"><a href="#404页面问题" class="headerlink" title="404页面问题"></a>404页面问题</h3><p><code>hexo new page 404</code><br><code>source/404/index.md</code>中添加页面内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">---</div><div class="line">title: 404 Not Found</div><div class="line">toc: false</div><div class="line">comments: false</div><div class="line">permalink: /404</div><div class="line">---</div><div class="line">页面正文</div></pre></td></tr></table></figure></p>
+<p>完成后<code>hexo generate</code>后就会有<code>public/404.html</code></p>
+<p>为了使服务器解析到不存在页面，或者禁止访问的页面时，都跳到404页面，进行如下设置：<br><code>vim /etc/apache2/apache2.conf</code><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">//加入如下两行</div><div class="line">ErrorDocument 404 /404.html</div><div class="line">ErrorDocument 403 /404.html</div></pre></td></tr></table></figure></p>
+<h3 id="修改-archives页面样式"><a href="#修改-archives页面样式" class="headerlink" title="修改/archives页面样式"></a>修改/archives页面样式</h3><p><code>vim yelee/source/css/_partial/archive.styl</code><br>我是直接替换了原版主题的这个文件，因为个人更喜欢原版的间距风格</p>
+<h3 id="修改边栏顶部随机颜色"><a href="#修改边栏顶部随机颜色" class="headerlink" title="修改边栏顶部随机颜色"></a>修改边栏顶部随机颜色</h3><p><code>vim yelee/source/js/main.js</code><br>144行处找到如下内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">var colorList = [&quot;#6da336&quot;, &quot;#ff945c&quot;, &quot;#66CC66&quot;, &quot;#99CC99&quot;, &quot;#CC6666&quot;, &quot;#76becc&quot;, &quot;#c99979&quot;, &quot;#918597&quot;, &quot;#4d4d4d&quot;]</div></pre></td></tr></table></figure></p>
+<p>删除其中的几个粉嫩颜色,<code>#CC6666</code>、<code>#ff945c</code>、<code>#c99979</code>等  </p>
+<h1 id="0x07-参考文章"><a href="#0x07-参考文章" class="headerlink" title="0x07 参考文章"></a>0x07 参考文章</h1><ul>
+<li><a href="https://my.oschina.net/blogshi/blog/260953" target="_blank" rel="external">多种方式安装nodejs</a></li>
+<li><a href="http://www.jianshu.com/p/0deb70e6f395" target="_blank" rel="external">npm换源</a>  </li>
+<li><a href="http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/001374385852170d9c7adf13c30429b9660d0eb689dd43a000" target="_blank" rel="external">生成Github的SSH Key</a>  </li>
+<li><a href="https://hexo.io/zh-cn/docs/index.html" target="_blank" rel="external">Hexo官方文档</a>  </li>
+<li><a href="http://www.jianshu.com/collection/7fafdc0abb5b" target="_blank" rel="external">简书-Hexo专题</a></li>
+<li><a href="http://baixin.io/2015/08/HEXO%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/" target="_blank" rel="external">Hexo搭建个人博客1</a>  </li>
+<li><a href="http://www.jianshu.com/p/99665608d295" target="_blank" rel="external">Hexo搭建个人博客2</a>  </li>
+<li><a href="http://www.jianshu.com/p/a2023a601ceb" target="_blank" rel="external">Hexo搭建个人博客3</a>  </li>
+</ul>
+
+      
+    </div>
+    
+  </div>
+  
+    
+
+
+    <nav id="article-nav">
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2016/08/17/Topsec_ELCO_Analy/">
+                    Topsec ECLO 漏洞利用分析
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0x00-安装nodejs"><span class="toc-text">0x00 安装nodejs</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x01-安装配置Git"><span class="toc-text">0x01 安装配置Git</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#安装git："><span class="toc-text">安装git：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#生成SSH-Key"><span class="toc-text">生成SSH Key</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#配置Github-Page"><span class="toc-text">配置Github Page</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x02-安装Hexo"><span class="toc-text">0x02 安装Hexo</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#npm换源："><span class="toc-text">npm换源：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#开始安装："><span class="toc-text">开始安装：</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x03-Hexo配置"><span class="toc-text">0x03 Hexo配置</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#初始化："><span class="toc-text">初始化：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装依赖："><span class="toc-text">安装依赖：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#生成静态文件："><span class="toc-text">生成静态文件：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#本地启动："><span class="toc-text">本地启动：</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x04-deploy到Github"><span class="toc-text">0x04 deploy到Github</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#安装git插件："><span class="toc-text">安装git插件：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#修改-config-yml中参数："><span class="toc-text">修改_config.yml中参数：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一键部署："><span class="toc-text">一键部署：</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x05-使用Apache解析静态文件"><span class="toc-text">0x05 使用Apache解析静态文件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#修改默认根目录"><span class="toc-text">修改默认根目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#禁止显示目录结构"><span class="toc-text">禁止显示目录结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#启用多端口"><span class="toc-text">启用多端口</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#修改ports-conf"><span class="toc-text">修改ports.conf</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#修改网站启动配置文件"><span class="toc-text">修改网站启动配置文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#启动配置"><span class="toc-text">启动配置</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x06-更换主题"><span class="toc-text">0x06 更换主题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#本博客主题yelee"><span class="toc-text">本博客主题yelee</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#滚动条问题"><span class="toc-text">滚动条问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#404页面问题"><span class="toc-text">404页面问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#修改-archives页面样式"><span class="toc-text">修改/archives页面样式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#修改边栏顶部随机颜色"><span class="toc-text">修改边栏顶部随机颜色</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#0x07-参考文章"><span class="toc-text">0x07 参考文章</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"true"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"使用Hexo建立博客　| DshtAnger　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/" title="回到主页"><i class="fa fa-home"></i></a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2016/08/17/Topsec_ELCO_Analy/" title="下一篇: Topsec ECLO 漏洞利用分析">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/10/09/using_Hexo_buildBlog/">使用Hexo建立博客</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/08/17/Topsec_ELCO_Analy/">Topsec ECLO 漏洞利用分析</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/08/15/Zabbix_insertDB_Injection/">Zabbix insertDB()注入漏洞分析</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/08/05/deployDjango_Nginx_uWSGI/">使用uWSGI和Nginx部署Django</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016 DshtAnger
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>

