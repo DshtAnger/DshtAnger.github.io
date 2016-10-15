@@ -11,6 +11,7 @@ menu:
   所有文章: /archives/
   标签云: /tags/
   关于我: /about/
+  友情链接: /friends/
 
 # Link to your avatar | 填写头像地址
 avatar: /img/hacker.jpg
@@ -179,10 +180,10 @@ limit_article_width:
 tagcloud: false
 
 # Blogroll, Link exchange | 友情链接
-friends:
-  Hexo: https://hexo.io
-  GitHub: https://pages.github.com/
-  MOxFIVE: http://moxfive.xyz/
+#friends:
+#  Hexo: https://hexo.io
+#  GitHub: https://pages.github.com/
+#  MOxFIVE: http://moxfive.xyz/
 #friends: false
 
 #是否开启“关于我”。
