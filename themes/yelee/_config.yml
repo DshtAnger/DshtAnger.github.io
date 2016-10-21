@@ -42,7 +42,7 @@ since: 2016
 subnav:
   #新浪微博: "sina weibo"
   GitHub: "https://github.com/DshtAnger"
-  Email: "mailto:568274449@qq.com"
+  #Email: "mailto:568274449@qq.com"
   #V2EX: "#"
   #RSS: "/atom.xml"
   #知乎: "zhihu"
