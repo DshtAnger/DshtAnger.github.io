@@ -51,7 +51,7 @@ ifconfig wlan0
 ```
 也可以使用永久修改的方式指定dhcp获取各种地址信息，推荐这种方法。
 
-### 永久修改
+## 永久修改
 `sudo vim /etc/network/interfaces`
 ```
 #加入如下内容
