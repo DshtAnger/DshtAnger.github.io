@@ -326,6 +326,12 @@ var colorList = ["#6da336", "#ff945c", "#66CC66", "#99CC99", "#CC6666", "#76becc
 ```
 删除其中的几个粉嫩颜色,`#CC6666`、`#ff945c`、`#c99979`等  
 
+### 资源文件夹设置
+为了方便文章内的图片等资源的统一管理，推荐使用hexo的资源文件夹特性，既省了使用外链图床的点击麻烦、也解决了路经引用问题  
+
+参考官方文档说明吧，足够了  
+
+[资源文件夹](https://hexo.io/zh-cn/docs/asset-folders.html)
   
 # 0x07 参考文章
 * [多种方式安装nodejs](https://my.oschina.net/blogshi/blog/260953)

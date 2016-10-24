@@ -63,3 +63,5 @@ pre-up ifconfig wlan0 hw ether aa:bb:cc:dd:ee:ff
 ```
 sudo /etc/init.d/networking restart 
 ```
+
+但是通常重启机器后仍然是原来的网卡配置，上面的配置内容并没有生效，此时再使用上面的命令重启网络服务即可
